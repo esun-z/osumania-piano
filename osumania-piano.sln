@@ -5,9 +5,9 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osumania-piano_connector", "piano-mania_connector.vcxproj", "{E6D9B6DA-B85C-4F9D-83C5-B7B0F8052144}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZERO_CHECK", "..\portmidi\ZERO_CHECK.vcxproj", "{28779535-7541-4FF5-AC12-FAFD66E894EC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZERO_CHECK", "pm\ZERO_CHECK.vcxproj", "{28779535-7541-4FF5-AC12-FAFD66E894EC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portmidi-static", "..\portmidi\pm_common\portmidi-static.vcxproj", "{2985D5DA-D91E-44E0-924B-E612B6AA33F6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portmidi-static", "pm\pm_common\portmidi-static.vcxproj", "{2985D5DA-D91E-44E0-924B-E612B6AA33F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
