@@ -350,7 +350,7 @@ int main() {
 		TIME_PROC,
 		TIME_INFO);
 	
-	cout << "Midi Input opened. Reading midi messages...\nPress CapsLock + R to enter record mode.\nPress CapsLock + R to quit.\n";
+	cout << "Midi Input opened. Reading midi messages...\nPress CapsLock + R to enter record mode.\nPress CapsLock + Esc to quit.\n";
 
 	Pm_SetFilter(midi, PM_FILT_ACTIVE | PM_FILT_CLOCK | PM_FILT_SYSEX);
 
