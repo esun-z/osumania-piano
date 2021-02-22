@@ -45,12 +45,21 @@ bool
 f_checkkey_R = false, 
 f_checkkey_esc = false, 
 f_record_mode = false, 
-f_showmidimessage = true;
+f_showmidimessage = true,
+f_async_click = false;
 char line[STRING_MAX];
 
 //record mode
 int bpm;
 int click_gap;
+struct MANIA_NOTE {
+	int type;
+	int position;
+	long timestamp1;
+	long timestamp2;
+};
+
+MANIA_NOTE dataa[MAX_DATA];
 
 int key_map[64] = {
 	'A','S','D','F','G','H','J','K','L','Q','W','E','R','T','Y','U','I','O',
@@ -65,10 +74,10 @@ int rec_hit_map[64] = {
 int checkkey() {
 	//Exit when ESC is pressed in the foreground
 	if (kbhit() != 0) {
-		if (ASYNC_KEY_DOWN(27/*ESC*/)) {
+		if (ASYNC_KEY_DOWN(27/*ESC*/) && ASYNC_KEY_DOWN(VK_CAPITAL)) {
 			return 1;
 		}
-		else if (ASYNC_KEY_DOWN('R')) {
+		else if (ASYNC_KEY_DOWN('R') && ASYNC_KEY_DOWN(VK_CAPITAL)) {
 			return 2;
 		}
 		else if (ASYNC_KEY_DOWN(32/*space*/)) {
@@ -123,6 +132,12 @@ DWORD WINAPI play_click(LPVOID lpParamer) {
 	PlaySound(TEXT("click.wav"), NULL, SND_FILENAME | SND_ASYNC);
 	Sleep(s_gap);
 	PlaySound(TEXT("click.wav"), NULL, SND_FILENAME | SND_ASYNC);
+	Sleep(s_gap);
+
+	while (f_async_click) {
+		PlaySound(TEXT("click.wav"), NULL, SND_FILENAME | SND_ASYNC);
+		Sleep(click_gap);
+	}
 	return 0;
 }
 
@@ -138,16 +153,10 @@ void record_mode() {
 	else {
 		assert(0);
 	}
+	f_async_click = true;
 	CreateThread(NULL, NULL, play_click, NULL, NULL, NULL);
 	
-	struct MANIA_NOTE {
-		int type;
-		int position;
-		long timestamp1;
-		long timestamp2;
-	};
-
-	MANIA_NOTE data[MAX_DATA];
+	
 
 	long key_data_map[64];
 	i = 0;
@@ -169,6 +178,7 @@ void record_mode() {
 			cout << "You are already in the record mode.\n";
 			break;
 		case 3:
+			f_async_click = false;
 			cout << "Stopped!\nSaving...";
 			
 			
@@ -178,11 +188,11 @@ void record_mode() {
 			cout << offset <<", " << click_gap << ", 4, 1, 0, 100, 1, 0\n\n\n[HitObjects]\n";
 			
 			for (int j = 0; j < i; ++j) {
-				if (data[j].type == 1) {
-					cout << data[j].position << ",192," << data[j].timestamp1 << ",1,0,0:0:0:0:\n";
+				if (dataa[j].type == 1) {
+					cout << dataa[j].position << ",192," << dataa[j].timestamp1 << ",1,0,0:0:0:0:\n";
 				}
 				else {
-					cout << data[j].position << ",192," << data[j].timestamp1 << ",128,0," << data[j].timestamp2 << ":0:0:0:0:\n";
+					cout << dataa[j].position << ",192," << dataa[j].timestamp1 << ",128,0," << dataa[j].timestamp2 << ":0:0:0:0:\n";
 				}
 			}
 			freopen("CON", "w", stdout);
@@ -195,7 +205,7 @@ void record_mode() {
 		}
 
 		if (i > 40000) {
-			cout << "Warning ! Too many notes ! Stopped!\n";
+			cout << "Too many notes ! Stopped!\n";
 			break;
 		}
 		
@@ -232,8 +242,8 @@ void record_mode() {
 				if (operation == 0 && !keystate[key]) {
 					keystate[key] = true;
 					
-					data[i].timestamp1 = timestamp;
-					data[i].position = rec_hit_map[key];
+					dataa[i].timestamp1 = timestamp;
+					dataa[i].position = rec_hit_map[key];
 					key_data_map[key] = i;
 					i++;
 
@@ -242,12 +252,12 @@ void record_mode() {
 				if (operation != 0 && keystate[key]) {
 					keystate[key] = false;
 					
-					if ((timestamp - data[key_data_map[key]].timestamp1) >= (click_gap * 3 / 2 + 1)) {
-						data[key_data_map[key]].timestamp2 = timestamp;
-						data[key_data_map[key]].type = 128;
+					if ((timestamp - dataa[key_data_map[key]].timestamp1) >= (click_gap)) {
+						dataa[key_data_map[key]].timestamp2 = timestamp;
+						dataa[key_data_map[key]].type = 128;
 					}
 					else {
-						data[key_data_map[key]].type = 1;
+						dataa[key_data_map[key]].type = 1;
 					}
 
 					cout << key << "	" << operation << "\n";
@@ -340,7 +350,7 @@ int main() {
 		TIME_PROC,
 		TIME_INFO);
 	
-	cout << "Midi Input opened. Reading midi messages...\nPress R to enter record mode.\n";
+	cout << "Midi Input opened. Reading midi messages...\nPress CapsLock + R to enter record mode.\nPress CapsLock + R to quit.\n";
 
 	Pm_SetFilter(midi, PM_FILT_ACTIVE | PM_FILT_CLOCK | PM_FILT_SYSEX);
 
